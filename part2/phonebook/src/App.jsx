@@ -70,14 +70,20 @@ const App = () => {
   }
 
   const handleAddition = (newPerson) => {
-    addNewPerson(newPerson).then((response) => {
-      setPersons(persons.concat(response))
-      setNewName('')
-      setNewPhoneNumber('')
-      setMessageType('success')
-      setMessage(`Added ${newPerson.name} successfully`)
-      setTimeout(() => setMessage(null), 5000)
-    })
+    addNewPerson(newPerson)
+      .then((response) => {
+        setPersons(persons.concat(response))
+        setNewName('')
+        setNewPhoneNumber('')
+        setMessageType('success')
+        setMessage(`Added ${newPerson.name} successfully`)
+        setTimeout(() => setMessage(null), 5000)
+      })
+      .catch((error) => {
+        setMessageType('error')
+        setMessage(error.response.data.error)
+        setTimeout(() => setMessage(null), 5000)
+      })
   }
 
   const handleFormSubmit = (event) => {
