@@ -122,6 +122,43 @@ describe('blog api', () => {
     const blogsAtEnd = await api.get('/api/blogs')
     assert.strictEqual(blogsAtEnd.body.length, blogsAtStart.body.length)
   })
+
+  test('deleting a blog post succeeds with status code 204', async () => {
+    const blogsAtStart = (await api.get('/api/blogs')).body
+    const blogToDelete = blogsAtStart[0]
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+
+    const blogsAtEnd = (await api.get('/api/blogs')).body
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1)
+    assert.ok(
+      blogsAtEnd.every((blog) => blog.id !== blogToDelete.id)
+    )
+  })
+
+  test('updating a blog post succeeds with status code 200', async () => {
+    const blogsAtStart = (await api.get('/api/blogs')).body
+    const blogToUpdate = blogsAtStart[0]
+
+    const updatedBlog = {
+      title: blogToUpdate.title,
+      author: blogToUpdate.author,
+      url: blogToUpdate.url,
+      likes: blogToUpdate.likes + 10,
+    }
+
+    const response = await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .set('Accept', 'application/json')
+      .expect(200)
+
+    assert.strictEqual(response.body.likes, updatedBlog.likes)
+
+    const blogsAtEnd = (await api.get('/api/blogs')).body
+    const foundBlog = blogsAtEnd.find((blog) => blog.id === blogToUpdate.id)
+    assert.strictEqual(foundBlog.likes, updatedBlog.likes)
+  })
 })
 
 after(async () => {
