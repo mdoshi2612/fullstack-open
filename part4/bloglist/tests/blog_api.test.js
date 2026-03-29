@@ -131,9 +131,7 @@ describe('blog api', () => {
 
     const blogsAtEnd = (await api.get('/api/blogs')).body
     assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1)
-    assert.ok(
-      blogsAtEnd.every((blog) => blog.id !== blogToDelete.id)
-    )
+    assert.ok(blogsAtEnd.every((blog) => blog.id !== blogToDelete.id))
   })
 
   test('updating a blog post succeeds with status code 200', async () => {
