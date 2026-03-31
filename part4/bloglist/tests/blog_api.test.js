@@ -4,8 +4,10 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
+let token = null
 
 const initialBlogs = [
   {
@@ -23,8 +25,27 @@ const initialBlogs = [
 ]
 
 beforeEach(async () => {
+  await User.deleteMany({})
   await Blog.deleteMany({})
-  await Blog.insertMany(initialBlogs)
+
+  const newUser = {
+    username: 'blogtester',
+    name: 'Blog Tester',
+    password: 'secret123',
+  }
+
+  await api.post('/api/users').send(newUser)
+  const loginResponse = await api.post('/api/login').send({
+    username: newUser.username,
+    password: newUser.password,
+  })
+  token = loginResponse.body.token
+  const createdUser = await User.findOne({ username: newUser.username })
+  const initialBlogsWithUser = initialBlogs.map((blog) => ({
+    ...blog,
+    user: createdUser._id,
+  }))
+  await Blog.insertMany(initialBlogsWithUser)
 })
 
 describe('blog api', () => {
@@ -60,6 +81,7 @@ describe('blog api', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set('Authorization', `Bearer ${token}`)
       .set('Accept', 'application/json')
       .expect(201)
 
@@ -79,6 +101,7 @@ describe('blog api', () => {
     const response = await api
       .post('/api/blogs')
       .send(newBlog)
+      .set('Authorization', `Bearer ${token}`)
       .set('Accept', 'application/json')
       .expect(201)
 
@@ -97,6 +120,7 @@ describe('blog api', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set('Authorization', `Bearer ${token}`)
       .set('Accept', 'application/json')
       .expect(400)
 
@@ -116,6 +140,7 @@ describe('blog api', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set('Authorization', `Bearer ${token}`)
       .set('Accept', 'application/json')
       .expect(400)
 
@@ -123,11 +148,25 @@ describe('blog api', () => {
     assert.strictEqual(blogsAtEnd.body.length, blogsAtStart.body.length)
   })
 
+  test('adding blog post without token fails with status code 401', async () => {
+    const newBlog = {
+      title: 'No token blog',
+      author: 'No Auth',
+      url: 'https://example.com/no-token',
+      likes: 1,
+    }
+
+    await api.post('/api/blogs').send(newBlog).expect(401)
+  })
+
   test('deleting a blog post succeeds with status code 204', async () => {
     const blogsAtStart = (await api.get('/api/blogs')).body
     const blogToDelete = blogsAtStart[0]
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(204)
 
     const blogsAtEnd = (await api.get('/api/blogs')).body
     assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1)

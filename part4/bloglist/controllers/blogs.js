@@ -14,20 +14,19 @@ blogRouter.get('/', async (request, response, next) => {
 
 blogRouter.post('/', async (request, response, next) => {
   try {
-    const user = await User.findOne({})
-    if (!user) {
-      return response.status(400).json({ error: 'no users available' })
+    if (!request.user) {
+      return response.status(401).json({ error: 'token missing or invalid' })
     }
 
     const blog = new Blog({
       ...request.body,
-      user: user._id,
+      user: request.user._id,
     })
 
     const result = await blog.save()
 
-    user.blogs = user.blogs.concat(result._id)
-    await user.save()
+    request.user.blogs = request.user.blogs.concat(result._id)
+    await request.user.save()
 
     response.status(201).json(result)
   } catch (error) {
@@ -37,7 +36,24 @@ blogRouter.post('/', async (request, response, next) => {
 
 blogRouter.delete('/:id', async (request, response, next) => {
   try {
+    if (!request.user) {
+      return response.status(401).json({ error: 'token invalid or missing' })
+    }
+
+    const blog = await Blog.findById(request.params.id)
+
+    if (!blog) {
+      return response.status(404).json({ error: 'blog does not exist' })
+    }
+
+    if (request.user.id !== blog.user.toString()) {
+      return response
+        .status(403)
+        .json({ error: 'you are not the owner of this blog' })
+    }
+
     const deletedBlog = await Blog.findByIdAndDelete(request.params.id)
+
     if (deletedBlog?.user) {
       await User.findByIdAndUpdate(deletedBlog.user, {
         $pull: { blogs: deletedBlog._id },
