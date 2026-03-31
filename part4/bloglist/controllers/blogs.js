@@ -1,10 +1,11 @@
 const express = require('express')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 const blogRouter = express.Router()
 
 blogRouter.get('/', async (request, response, next) => {
   try {
-    const blogs = await Blog.find({})
+    const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
     response.json(blogs)
   } catch (error) {
     next(error)
@@ -13,8 +14,21 @@ blogRouter.get('/', async (request, response, next) => {
 
 blogRouter.post('/', async (request, response, next) => {
   try {
-    const blog = new Blog(request.body)
+    const user = await User.findOne({})
+    if (!user) {
+      return response.status(400).json({ error: 'no users available' })
+    }
+
+    const blog = new Blog({
+      ...request.body,
+      user: user._id,
+    })
+
     const result = await blog.save()
+
+    user.blogs = user.blogs.concat(result._id)
+    await user.save()
+
     response.status(201).json(result)
   } catch (error) {
     next(error)
@@ -23,7 +37,12 @@ blogRouter.post('/', async (request, response, next) => {
 
 blogRouter.delete('/:id', async (request, response, next) => {
   try {
-    await Blog.findByIdAndDelete(request.params.id)
+    const deletedBlog = await Blog.findByIdAndDelete(request.params.id)
+    if (deletedBlog?.user) {
+      await User.findByIdAndUpdate(deletedBlog.user, {
+        $pull: { blogs: deletedBlog._id },
+      })
+    }
     response.status(204).end()
   } catch (error) {
     next(error)
