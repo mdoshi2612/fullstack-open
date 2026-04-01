@@ -1,8 +1,25 @@
-# React + Vite
+# Bloglist frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+In this exercise, we will now create a frontend for the bloglist backend we created in the last part.
+A login functionnality is also implemented for restricting the possibility to view and create blogs only by authenticated users. We assume that a user already exists with the good credentials.
 
-Currently, two official plugins are available:
+Since the objective of this part is to test the react app, unit tests and end-to-end (E2E) tests with cypress are also implemented.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Start the application locally
+
+To start an application:
+
+```bash
+# First, you need to start the backend, to do so, head to the part4. Everything is explained in the README
+
+# Install dependancies
+$ npm install
+
+# Start the frontend application
+$ npm start
+
+# For running E2E tests
+$ npm run cypress:open        # Then, click on run all specs
+```
+
+You can then access the app on : http://localhost:3000/
