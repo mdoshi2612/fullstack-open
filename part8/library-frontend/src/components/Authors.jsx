@@ -9,6 +9,14 @@ const Authors = (props) => {
     refetchQueries: [{ query: ALL_AUTHORS }],
   })
 
+  const authors = useQuery(ALL_AUTHORS)
+  if (authors.loading) {
+    return <div>loading...</div>
+  }
+  if (authors.error) {
+    return <div>error: {authors.error.message}</div>
+  }
+
   const submit = async (event) => {
     event.preventDefault()
     editAuthor({ variables: { name, setBornTo: parseInt(born) } })
@@ -18,13 +26,6 @@ const Authors = (props) => {
 
   if (!props.show) {
     return null
-  }
-  const authors = useQuery(ALL_AUTHORS)
-  if (authors.loading) {
-    return <div>loading...</div>
-  }
-  if (authors.error) {
-    return <div>error: {authors.error.message}</div>
   }
   const authorsData = authors.data.allAuthors
 
