@@ -29,6 +29,7 @@ const typeDefs = /* GraphQL */ `
     authorCount: Int!
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
+    allGenres: [String!]!
     me: User
   }
 
@@ -42,15 +43,9 @@ const typeDefs = /* GraphQL */ `
 
     editAuthor(name: String!, setBornTo: Int!): Author
 
-    createUser(
-      username: String!
-      favoriteGenre: String!
-    ): User
+    createUser(username: String!, favoriteGenre: String!): User
 
-    login(
-      username: String!
-      password: String!
-    ): Token
+    login(username: String!, password: String!): Token
   }
 `
 

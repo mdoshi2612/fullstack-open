@@ -27,6 +27,10 @@ const resolvers = {
     me: (root, args, context) => {
       return context.currentUser
     },
+    allGenres: async () => {
+      const genres = await Book.distinct('genres')
+      return genres
+    },
   },
   Author: {
     bookCount: async (root) => {
