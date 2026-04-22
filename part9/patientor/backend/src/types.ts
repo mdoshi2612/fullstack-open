@@ -1,3 +1,11 @@
+export const GenderValues = {
+  Male: 'male',
+  Female: 'female',
+  Other: 'other',
+} as const;
+
+export type Gender = (typeof GenderValues)[keyof typeof GenderValues];
+
 export interface Diagnosis {
   code: string;
   name: string;
@@ -9,7 +17,7 @@ export interface Patient {
   name: string;
   dateOfBirth: string;
   ssn: string;
-  gender: string;
+  gender: Gender;
   occupation: string;
 }
 

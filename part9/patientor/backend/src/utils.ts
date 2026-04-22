@@ -1,7 +1,22 @@
-import type { NewPatient } from './types.ts';
+import { type NewPatient, type Gender, GenderValues } from './types.ts';
 
 const isString = (text: unknown): text is string => {
   return typeof text === 'string' || text instanceof String;
+};
+
+export const isGender = (gender: unknown): gender is Gender => {
+  if (!gender || !isString(gender)) {
+    throw new Error('Incorrect or missing data');
+  }
+  return (Object.values(GenderValues) as string[]).includes(gender);
+};
+
+const parseGender = (value: unknown): Gender => {
+  const gender = parseStringField(value, 'gender');
+  if (!isGender(gender)) {
+    throw new Error('Incorrect or missing data');
+  }
+  return gender;
 };
 
 const parseStringField = (value: unknown, fieldName: string): string => {
@@ -41,7 +56,7 @@ export const toNewPatient = (object: unknown): NewPatient => {
       name: parseStringField(object.name, 'name'),
       dateOfBirth: parseDate(object.dateOfBirth),
       ssn: parseStringField(object.ssn, 'ssn'),
-      gender: parseStringField(object.gender, 'gender'),
+      gender: parseGender(object.gender),
       occupation: parseStringField(object.occupation, 'occupation'),
     };
 
