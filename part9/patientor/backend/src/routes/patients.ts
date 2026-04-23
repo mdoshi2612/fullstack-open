@@ -1,29 +1,37 @@
-import express, { type Response } from 'express';
+import express, {
+  type Response,
+  type Request,
+  type NextFunction,
+} from 'express';
 import patientService from '../services/patientService.ts';
-import type { ProtectedPatientData, Patient } from '../types.ts';
-import { toNewPatient } from '../utils.ts';
+import {
+  type ProtectedPatientData,
+  type Patient,
+  newPatientSchema,
+} from '../types.ts';
+import { errorHandlerMiddleware } from '../middleware/errorHandler.ts';
 
 const router = express.Router();
 
-router.get('/', (_req, res: Response<ProtectedPatientData[]>) => {
+router.get('/', (_req: Request, res: Response<ProtectedPatientData[]>) => {
   const data: ProtectedPatientData[] =
     patientService.getAllProtectedPatientData();
   res.send(data);
 });
 
-router.post('/', (req, res: Response<Patient | string>) => {
-  try {
-    const newPatientEntry = toNewPatient(req.body);
-    const newPatient = patientService.addPatient(newPatientEntry);
-    res.send(newPatient);
-  } catch (error: unknown) {
-    let errorMessage = 'Something went wrong.';
-    if (error instanceof Error) {
-      errorMessage += ' Error: ' + error.message;
+router.post(
+  '/',
+  (req: Request, res: Response<Patient>, next: NextFunction) => {
+    const parsed = newPatientSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return next(parsed.error);
     }
 
-    res.status(400).send(errorMessage);
+    const newPatient = patientService.addPatient(parsed.data);
+    res.json(newPatient);
   }
-});
+);
+
+router.use(errorHandlerMiddleware);
 
 export default router;
