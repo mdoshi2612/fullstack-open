@@ -8,9 +8,10 @@ import MaleIcon from '@mui/icons-material/Male';
 import TransgenderIcon from '@mui/icons-material/Transgender';
 
 import patientService from '../../services/patients';
-import { Gender, type Patient } from '../../types';
+import { Gender, type Patient, type Diagnosis } from '../../types';
+import Entry from '../Entry/Entry';
 
-const PatientPage = () => {
+const PatientPage = ({ diagnoses }: { diagnoses: Diagnosis[] }) => {
   const { id } = useParams<{ id: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,13 @@ const PatientPage = () => {
       <Typography>SSN: {patient.ssn ?? 'N/A'}</Typography>
       <Typography>Date of birth: {patient.dateOfBirth ?? 'N/A'}</Typography>
       <Typography>Occupation: {patient.occupation}</Typography>
+      <br />
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        entries
+      </Typography>
+      {patient.entries?.map((entry) => (
+        <Entry entry={entry} key={entry.id}></Entry>
+      ))}
     </Box>
   );
 };

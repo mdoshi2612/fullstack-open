@@ -14,8 +14,7 @@ import { errorHandlerMiddleware } from '../middleware/errorHandler.ts';
 const router = express.Router();
 
 router.get('/', (_req: Request, res: Response<NonSensitivePatient[]>) => {
-  const data: NonSensitivePatient[] =
-    patientService.getAllNonSensitivePatientData();
+  const data: Patient[] = patientService.getAllPatientData();
   res.send(data);
 });
 

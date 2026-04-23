@@ -12,7 +12,6 @@ import {
 import axios from 'axios';
 
 import { Link } from 'react-router-dom';
-import PatientPage from '../PatientPage';
 
 import { PatientFormValues, Patient } from '../../types';
 import AddPatientModal from '../AddPatientModal';
