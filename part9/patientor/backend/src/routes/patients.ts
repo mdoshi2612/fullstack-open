@@ -5,7 +5,7 @@ import express, {
 } from 'express';
 import patientService from '../services/patientService.ts';
 import {
-  type ProtectedPatientData,
+  type NonSensitivePatient,
   type Patient,
   newPatientSchema,
 } from '../types.ts';
@@ -13,24 +13,36 @@ import { errorHandlerMiddleware } from '../middleware/errorHandler.ts';
 
 const router = express.Router();
 
-router.get('/', (_req: Request, res: Response<ProtectedPatientData[]>) => {
-  const data: ProtectedPatientData[] =
-    patientService.getAllProtectedPatientData();
+router.get('/', (_req: Request, res: Response<NonSensitivePatient[]>) => {
+  const data: NonSensitivePatient[] =
+    patientService.getAllNonSensitivePatientData();
   res.send(data);
 });
 
-router.post(
-  '/',
-  (req: Request, res: Response<Patient>, next: NextFunction) => {
-    const parsed = newPatientSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(parsed.error);
+router.get(
+  '/:id',
+  (
+    req: Request<{ id: string }>,
+    res: Response<Patient | { error: string }>
+  ) => {
+    const id = req.params.id;
+    const patient = patientService.getPatientById(id);
+    if (!patient) {
+      return res.status(404).json({ error: 'patient not found' });
     }
-
-    const newPatient = patientService.addPatient(parsed.data);
-    res.json(newPatient);
+    return res.json(patient);
   }
 );
+
+router.post('/', (req: Request, res: Response<Patient>, next: NextFunction) => {
+  const parsed = newPatientSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return next(parsed.error);
+  }
+
+  const newPatient = patientService.addPatient(parsed.data);
+  res.json(newPatient);
+});
 
 router.use(errorHandlerMiddleware);
 
